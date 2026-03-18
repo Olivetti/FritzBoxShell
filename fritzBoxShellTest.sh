@@ -22,12 +22,19 @@ declare -a minwords=(3           5         3            5         9       1     
 counter=0
 for i in "${services[@]}"
 do
-	echo -n "$i" "${actions[$counter]}"
-	words=$(/bin/bash "$DIRECTORY/fritzBoxShell.sh" "$i" "${actions[$counter]}"|wc -w)
-	#echo -n $words
-	[[ "$words" -ge ${minwords[$counter]} ]] && echo -e "\tis working!" || echo -e "\tis not working!"
-	counter=$((counter+1))
+    printf "%-20s" "${i} ${actions[$counter]}"
+    words=$(/bin/bash "$DIRECTORY/fritzBoxShell.sh" "${i}" "${actions[$counter]}" | wc -w)
+    #echo -n $words
+    [[ "$words" -ge ${minwords[$counter]} ]] && echo "yes" || echo "no"
+    counter=$((counter+1))
 done
-/bin/bash "$DIRECTORY/fritzBoxShell.sh" DEVICEINFO 3 | grep NewModelName
-/bin/bash "$DIRECTORY/fritzBoxShell.sh" DEVICEINFO 3 | grep NewSoftwareVersion
-/bin/bash "$DIRECTORY/fritzBoxShell.sh" VERSION
+ 
+DI=$(/bin/bash "$DIRECTORY/fritzBoxShell.sh" DEVICEINFO 3)
+for j in 'NewModelName' 'NewSoftwareVersion'
+do
+    _DI=$(grep ${j} <<<${DI})
+    printf "%-19s %s\n" "$(cut -d' ' -f1 <<<${_DI})" "$(cut -d' ' -f2- <<<${_DI})"
+done
+ 
+VERS=$(/bin/bash "$DIRECTORY/fritzBoxShell.sh" VERSION)
+printf "%-19s v%s\n" "$(cut -d' ' -f1 <<<${VERS})" "$(cut -d' ' -f3 <<<${VERS})"
